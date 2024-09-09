@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project1:  Prokudin-Gorskii Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seablue: {
+                            light: '#e3f2fd',
+                            DEFAULT: '#2196f3',
+                            dark: '#1565c0',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+    <div class="flex">
+        <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <ul class="space-y-3">
+                    <li><a href="#introduction" class="text-seablue hover:text-seablue-dark transition-colors">Introduction</a></li>
+                    <li><a href="#single-scale" class="text-seablue hover:text-seablue-dark transition-colors">Single Scale Alignment</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#single-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#single-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#multi-scale" class="text-seablue hover:text-seablue-dark transition-colors">Multi Scale Alignment</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#multi-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#multi-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#displacement-table" class="text-seablue hover:text-seablue-dark transition-colors">Displacement Table</a></li>
+                    <li><a href="#acknowledgements" class="text-seablue hover:text-seablue-dark transition-colors">Acknowledgements</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-12 w-full">
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">CS180 Project1: Prokudin-Gorskii Collection</h1>
+
+            <section id="introduction" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Introduction</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The Prokudin-Gorskii collection contains three images for each subject, taken through red, green, and blue filters. However, these three color channels were not aligned when the image was taken. In this project I develop an algorithm to produce the final photographs by aligning the colors. The focus will be on using single-scale and multi-scale algorithms to align both small and large images.
+                </p>
+            </section>
+
+            <section id="single-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Single Scale Alignment</h2>
+                <h3 id="single-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    For images with dimensions around 300 pixels, I iterate through pixel alignments from [-15, 15] and compute the L2 norm between the blue-red pair and blue-green pair. This aligns both the red and green filters to the blue filter. Although I experimented with Cross Correlation, the L2 norm yielded better results.
+                </p>
+                <h3 id="single-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <img src="simpleCase/cathedral.jpg" alt="Single Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="simpleCase/monastery.jpg" alt="Single Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="simpleCase/tobolsk.jpg" alt="Single Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="multi-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Multi Scale Alignment</h2>
+                <h3 id="multi-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    For larger images, iterating through alignments manually is computationally expensive. To speed up the process, I employ the image pyramid approach, reducing the image scale by a factor of 2 in each iteration. This algorithm is implemented recursively, stopping the scale reduction when the image reaches 200 pixels. If the stopping criterion is too small, it can lead to misalignments in some images, as small errors result in large displacements in the original image. I experimented with both L2 and Cross Correlation norms, ultimately choosing the L2 norm for its superior performance. Additionally, I considered using the Sobel operator to detect edges before comparing the images, which worked well for some cases but did not improve the overall algorithm performance.
+                </p>
+                <h3 id="multi-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <img src="output/onion_church.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="output/three_generations.jpg" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="output/melons.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="output/sculpture.jpg" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="output/harvesters2.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="output/train.jpg" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="displacement-table" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Displacement Table</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                        <thead class="bg-seablue text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Image</th>
+                                <th class="py-3 px-4 text-left">Red Displacement (x, y)</th>
+                                <th class="py-3 px-4 text-left">Green Displacement (x, y)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="py-3 px-4">onion church</td> 
+                                <td class="py-3 px-4">[27 50]</td>
+                                <td class="py-3 px-4">[ 36 108]</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4">melons </td>
+                                <td class="py-3 px-4">[14 86]</td>
+                                <td class="py-3 px-4">[ 12 174]</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4">three generations</td>
+                                <td class="py-3 px-4">[12 48]</td>
+                                <td class="py-3 px-4">[12,112]</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4">sculpture</td>
+                                <td class="py-3 px-4">[-10  34]</td>
+                                <td class="py-3 px-4">[-24 132]</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4">harvesters</td>
+                                <td class="py-3 px-4">[18 62]</td>
+                                <td class="py-3 px-4">[14,118]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="acknowledgements" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Acknowledgements</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The structure of this page was inspired by a website, and parts of the code for creating the website structure were generated using ChatGPT.
+                </p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

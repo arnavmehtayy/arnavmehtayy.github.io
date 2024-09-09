@@ -1,0 +1,39 @@
+train:
+
+gb: [14 54]
+rb: [30 88]
+
+church:
+
+gb: [-10  -8]
+rb: [-25 -18]
+
+onion_church:
+
+gb: [27 50]
+rb: [ 36 108]
+
+melons
+
+gb: [14 86]
+rb: [ 12 174]
+
+three_generation:
+
+gb: [12 48]
+rb: [12,112]
+
+sculpture:
+
+gb : [-10  34]
+rb: [-24 132]
+
+self_potrait:
+
+gb: [24 76]
+rb: [30,160]
+
+harvesters:
+
+gb: [18 62]
+rb: [14,118]
