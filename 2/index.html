@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project2: Fun with Filters and Frequencies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seablue: {
+                            light: '#e3f2fd',
+                            DEFAULT: '#2196f3',
+                            dark: '#1565c0',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+    <div class="flex">
+        <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <ul class="space-y-3">
+                    <li><a href="#part1" class="text-seablue hover:text-seablue-dark transition-colors">Part 1: Fun with Filters</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#gradient-computation" class="text-seablue hover:text-seablue-dark transition-colors">Gradient Computation</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#part2" class="text-seablue hover:text-seablue-dark transition-colors">Part 2: Fun with Frequencies</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#image-sharpening" class="text-seablue hover:text-seablue-dark transition-colors">Image Sharpening</a></li>
+                            <li><a href="#hybrid-image" class="text-seablue hover:text-seablue-dark transition-colors">Hybrid Image</a></li>
+                            <li><a href="#gaussian-laplacian" class="text-seablue hover:text-seablue-dark transition-colors">Gaussian and Laplacian Stacks</a></li>
+                            <li><a href="#multiresolution-blending" class="text-seablue hover:text-seablue-dark transition-colors">Multiresolution Blending</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-12 w-full">
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">CS180 Project2: Fun with Filters and Frequencies</h1>
+
+            <section id="part1" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 1: Fun with Filters</h2>
+                
+                <section id="gradient-computation" class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-seablue">1.1: Gradient Computation</h3>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        To compute the image gradient, we begin by computing the partial derivatives in both the x and y directions using finite difference operators:
+                    </p>
+                    <ul class="list-disc list-inside mb-4 text-gray-700">
+                        <li>The finite difference operator for the x-direction is [-1,1]</li>
+                        <li>The finite difference operator for the y-direction is [-1,1]^T</li>
+                    </ul>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Convolving the cameraman image with these operators gives us the discrete partial derivatives ∂I/∂x and ∂I/∂y. The gradient is defined as:
+                    </p>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        ∇I = √((∂I/∂y)² + (∂I/∂x)²)
+                    </p>
+                    <!-- Placeholder for gradient images -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image1/camman_grad_X_non_gauss.png" alt="Partial derivative x" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image1/camman_grad_Y_non_gauss.png" alt="Partial derivative y" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image1/cameramanOut.png" alt="Gradient" class="w-full rounded-lg shadow-md">
+                    </div>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        The finite difference operators are really sensitive to noise. This leads to really discrete looking edges.To reduce noise sensitivity, we use a Gaussian filter before computing the gradient. We convolve the image with a 10x10 Gaussian kernel with σ = 2.
+                    </p>
+                    <!-- Placeholder for Gaussian smoothed gradient images -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image1/camman_grad_X_gauss.png" alt="Gaussian smoothed partial x" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image1/camman_grad_Y_gauss.png" alt="Gaussian smoothed partial y" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image1/cameraman_out_gassian2.png" alt="Gaussian smoothed gradient" class="w-full rounded-lg shadow-md">
+                    </div>
+                    <p class="mb-4 text-gray-700 leading-relaxed font-bold">
+                        We observe that the edges detected by the gradient are much smoother in this case, compared to the non-Gaussian version.
+                    </p>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                    We repeat this process again by first applying the difference operator through convolution to the gaussian followed by applying these operators to the image and then taking the sum of squares to compute the gradient. Note that by the commutative property of convolution. We expect that this image will be the same as the above, and this is exactly what we obtain. This saves us an extra convolution of the whole image which is an expensive operation.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image1/cameraman_out_gassian2.png" alt="Gaussian smoothed gradient" class="w-full rounded-lg shadow-md">
+                    </div>
+
+
+                </section>
+            </section>
+
+            <section id="part2" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 2: Fun with Frequencies</h2>
+                
+                <section id="image-sharpening" class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-seablue">2.1: Image Sharpening</h3>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        We sharpen images by separating low and high frequencies and adding extra high frequencies back to the original image. The high frequencies are obtained by applying the Gaussian filter and subtracting this filtered image from the original image.
+                    </p>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        The sharpened image is computed as: (α + 1) * I - α * gaussian_kernel, where α controls the degree of sharpening.
+                    </p>
+                    <!-- Placeholder for sharpening progression images -->
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p1/taj_mahal_sharp_progression.png" alt="Taj Mahal Sharpening Progression" class="w-full rounded-lg shadow-md">
+                        <p class="text-sm text-gray-600 mt-2">Taj Mahal sharpening progression (α values 1 to 6)</p>
+                    </div>
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p1/sharkened_arnav_child_progression.png" alt="Custom Image Sharpening Progression" class="w-full rounded-lg shadow-md">
+                        <p class="text-sm text-gray-600 mt-2">Custom image sharpening progression (α values 1 to 6)</p>
+                    </div>
+                </section>
+
+                <section id="hybrid-image" class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-seablue">2.2: Hybrid Image</h3>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Hybrid images are created by combining low frequencies from one image with high frequencies from another. This results in an image that appears different when viewed from near and far.
+                    </p>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        High frequencies: obtained by applying the Gaussian filter and subtracting this filtered image from the original image.
+                        Low frequencies: obtained by applying the Gaussian filter to the image.
+                    </p>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                    Here is the first example of a hybrid image. Note that before the images were used we used an alignment function to make sure that both the images were aligned appropriately. Here are the original pair of images and the hybrid
+                    </p>
+                    <!-- Placeholder for hybrid image examples -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/Derek_cat/nutmeg_aligned.png" alt="Nutmeg" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Derek_cat/Derek_aligned.png" alt="Derek" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Derek_cat/derek_nutmeg_hybrid.png" alt="Hybrid" class="w-full rounded-lg shadow-md">
+                    </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Now we have a hybrid of a happy and sad man.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/Hank/hank_test.jpg" alt="Happy Man" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Hank/hank_happy_sad_hybrid.png" alt="Hybrid Man" class="w-full rounded-lg shadow-md">
+                    </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Finally, we have a hybrid of a dog and a puppy.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/dogs/dog.jpg" alt="Dog" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/dogs/dog2.jpg" alt="Puppy" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/dogs/hybrid_dog_image.png" alt="Hybrid Dog Puppy" class="w-full rounded-lg shadow-md">
+                    </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        For the dog-puppy hybrid image, we also illustrate the process through frequency analysis. We convert the image using FFT into the Fourier domain to see how the low pass and high pass filters affect the result.
+                        Note that Image1 is that of the lab and Image2 is that of the puppy.
+                    </p>
+                    <!-- Placeholder for frequency analysis images -->
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p2/dogs/fftfordogImages.png" alt="FFT Dog" class="w-full rounded-lg shadow-md">
+                    </div>
+                </section>
+
+                <section id="gaussian-laplacian" class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-seablue">2.3: Gaussian and Laplacian Stacks</h3>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Now we move on to the problem of image blending. Note this is a stack and not a pyramid so there is no downsampling involved for pixels. The downsampling in the stack is induced by the increase of the sigma value for the gaussian kernel. The gaussian stack is created by applying the gaussian kernel with increasing values of sigma to the same image. 
+                    </p>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                         Laplacian stacks are generated by differencing consecutive Gaussian filtered images: Lap[i] = Gauss[i+1] - Gauss[i]. Below are the Laplacian stacks for the apple and orange images.
+                    </p>
+                    <!-- Placeholder for Gaussian and Laplacian stack images -->
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p2/stacks/laplacian_stack_apple.png" alt="Laplacian apple Stack" class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p2/stacks/orange_laplacian_stack.png" alt="Laplacian orange Stack" class="w-full rounded-lg shadow-md">
+                    </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Here are the Gaussian stacks for the orange and apple images.:
+                    </p>
+
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p2/stacks/gaussian_stack_apple.png" alt="Gaussian apple Stack" class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="mb-4">
+                        <img src="/Project2/Image2p2/stacks/gaussian_stack_orange.png" alt="Gaussian orange Stack" class="w-full rounded-lg shadow-md">
+                    </div>
+
+
+                    
+                </section>
+
+                <section id="multiresolution-blending" class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-seablue">2.4: Multiresolution Blending</h3>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        We use Laplacian stacks to blend two images. The process involves:
+                    </p>
+                    <ol class="list-decimal list-inside mb-4 text-gray-700">
+                        <li>Computing Laplacian stacks for both images</li>
+                        <li>Generating a mask and computing its Gaussian stack</li>
+                        <li>Computing merge[i] = mask[i]*im1_L[i] + (1-mask[i])*im2_L[i]</li>
+                        <li>Summing every frame in the merge frame to obtain the final image</li>
+                    </ol>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Here is the merged stack for the oraple:
+                    </p>
+                    <!-- Placeholder for multiresolution blending examples -->
+                     <div class="mb-4">
+                        <img src="/Project2/Image2p2/stacks/merged_oraple_stack.png" alt="Oraple Blending" class="w-full rounded-lg shadow-md">
+                     </div>
+                     <p>
+                        Note the last element here is the final image of the gaussian stack. By adding this stack we get the merged image. Here is the merged image for the orange and apply
+                     </p>
+
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/stacks/oraple.png" alt="Oraple Blending" class="w-full rounded-lg shadow-md">
+                        </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Here are some more examples of multiresolution blending:
+                    </p>
+                    <!-- Placeholder for more multiresolution blending examples -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/Hank/hank_merge_happy_sad_1.png" alt="Hank blending" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Hank/hank_happy_sad_merge_3.png" alt="Hank blended" class="w-full rounded-lg shadow-md">
+                        </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <img src="/Project2/Image2p2/Merge/kashvi.jpg" alt="kashvi" class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Merge/monkey.jpeg" alt="Monkey " class="w-full rounded-lg shadow-md">
+                        <img src="/Project2/Image2p2/Merge/kashviky.png" alt="kashviky" class="w-full rounded-lg shadow-md">
+                    </div>
+
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        Note for this the mask was drawn by hand on a ipad
+                    </p>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
