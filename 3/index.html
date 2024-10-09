@@ -79,9 +79,52 @@
                     This below gif shows the morph sequence from Kash to Nandy with 30 frames where alpha varies from 0 to 1. Notice that alpha = 0 will give us Image1 and alpha = 1 will give us Image2.
                 </p>
                 <!-- Placeholder for morph sequence gif -->
-                <div class="mb-4">
-                    <img src="/Project3/PartC/movie.gif" alt="Morph Sequence" class="w-full rounded-lg shadow-md">
-                </div>
+                <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Looping GIF</title>
+    <style>
+        .gif-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .looping-gif {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="gif-container">
+        <img src="/Project3/PartC/movie.gif" alt="Morph Sequence" class="looping-gif" id="loopingGif">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var gif = document.getElementById('loopingGif');
+            
+            function reloadGif() {
+                var src = gif.src;
+                gif.src = '';
+                setTimeout(function() {
+                    gif.src = src + '?t=' + new Date().getTime();
+                }, 50);
+            }
+
+            gif.addEventListener('load', function() {
+                setTimeout(reloadGif, 5000); // Reload every 5 seconds (adjust as needed)
+            });
+
+            // Initial load
+            reloadGif();
+        });
+    </script>
+</body>
+</html>
             </section>
 
             <section id="part4" class="mb-16">
