@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 3: Face Morphing and Population Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seablue: {
+                            light: '#e3f2fd',
+                            DEFAULT: '#2196f3',
+                            dark: '#1565c0',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+    <div class="flex">
+        <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <ul class="space-y-3">
+                    <li><a href="#part1" class="text-seablue hover:text-seablue-dark transition-colors">Part 1: Defining Correspondences</a></li>
+                    <li><a href="#part2" class="text-seablue hover:text-seablue-dark transition-colors">Part 2: Computing the "Mid-way Face"</a></li>
+                    <li><a href="#part3" class="text-seablue hover:text-seablue-dark transition-colors">Part 3: The Morph Sequence</a></li>
+                    <li><a href="#part4" class="text-seablue hover:text-seablue-dark transition-colors">Part 4: The "Mean face" of a population</a></li>
+                    <li><a href="#part5" class="text-seablue hover:text-seablue-dark transition-colors">Part 5: Caricatures</a></li>
+                    <li><a href="#bells-whistles" class="text-seablue hover:text-seablue-dark transition-colors">Bells and Whistles</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-12 w-full">
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">CS180 Project 3: Face Morphing and Population Analysis</h1>
+
+            <section id="part1" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 1: Defining Correspondences</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    In this section, I defined pairs of corresponding triangulations on two images and below that we show the mean triangulation mesh that we used for the mid-way image.
+                    I have used the Delaunay triangulation to create these meshes. These are my friends Kash and Nandy.
+                </p>
+                <!-- Placeholder for facial keypoints and triangulation images -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <img src="/Project3/PartA/kash_mesh.png" alt="Facial Keypoints Image 1" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartA/nandy_mesh.png" alt="Facial Keypoints Image 2" class="w-full rounded-lg shadow-md">
+                </div>
+                <div class="mb-4">
+                    <img src="/Project3/PartA/triangles.png" alt="Triangulation Mesh" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="part2" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 2: Computing the "Mid-way Face"</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Now that we have defined the mean triangular mesh. We can compute the mid-way face between two images by defining an affine warp.
+                    The way I did this was by morphing the two images into the mean mesh and then taking the average of the two images. I used the griddata function for extrapolation
+                    and the sklearn.draw.polygon function to get the pixel points inside each of the Delaunay triangles.
+                </p>
+                <!-- Placeholder for midway face images -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <img src="/Project3/PartB/Kashvi.png" alt="Original Image 1" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartB/NKmidway2.png" alt="Midway Face" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartB/Nandish.png" alt="Original Image 2" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="part3" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 3: The Morph Sequence</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    We created a morph sequence from one image to another. To do this we created a function that computes weighted averages of the mesh points we call this mesh the average_mesh which is parameterized by 0 < alpha < 1. I then morphed (affine transformation) Image1 into the this average mesh and then morphed Image2 into the average mesh. I then took the weighted average of the two morphed images to get the morph sequence.
+                    This below gif shows the morph sequence from Kash to Nandy with 30 frames where alpha varies from 0 to 1. Notice that alpha = 0 will give us Image1 and alpha = 1 will give us Image2.
+                </p>
+                <!-- Placeholder for morph sequence gif -->
+                <div class="mb-4">
+                    <img src="/Project3/PartC/movie.gif" alt="Morph Sequence" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="part4" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 4: The "Mean face" of a population</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    We computed the average face shape of given the FEI Face Database population. I did this by taking the average of the annotated points given in the dataset and then morphing each of the individuals in the population into this average mesh. I then took the average of all the morphed images to get the mean face.
+                    I have shown the mean face below and a few examples of faces morphed into the average mesh. Note that this dataset contains 100 images with people both smiling and not smiling. This explains why the mean face has a little bit of a blurr in the mouth region.
+                </p>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                Here is the mean face
+            </p>
+                <!-- Placeholder for mean face and warped faces -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <img src="/Project3/PartD/average_great.png" alt="Mean Face" class="w-full rounded-lg shadow-md">
+                </div>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                here are the warped faces
+            </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <img src="/Project3/PartD/20.png" alt="Warped Face 1" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartD/5.png" alt="Warped Face 2" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartD/6.png" alt="Warped Face 2" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartD/11.png" alt="Warped Face 2" class="w-full rounded-lg shadow-md">
+                </div>
+
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                Here is kashvi's face in the average geometry and the average face in kashvi's face geometry
+            </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <img src="/Project3/PartD/kash_to_mean.png" alt="My Face in Average Geometry" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/PartD/mean_to_kash.png" alt="Average Face in My Geometry" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="part5" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 5: Caricatures</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    We produced a caricature by extrapolating from the population mean. We do this by taking the difference between the mean face and the individual face scaling it by some factor between 0 and 1 and then adding this difference to the mean face. This will exaggerate the differences between the individual and the mean face. I have shown the caricature of Kash below.
+
+                </p>
+                <!-- Placeholder for caricature image -->
+                <div class="mb-4">
+                    <img src="/Project3/PartE/kash_caricature_better.png" alt="Caricature" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="bells-whistles" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Bells and Whistles</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    I took the mean face of the british parliament from the internet. Then I created a caricature of my friend Kashvi in the geometry of the mean face of the british parliament. I have shown the mean face of the british parliament and the caricature of Kashvi below.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <img src="/Project3/bells/avg.png" alt="Warped Face 1" class="w-full rounded-lg shadow-md">
+                    <img src="/Project3/bells/kash.png" alt="Warped Face 2" class="w-full rounded-lg shadow-md">
+                    
+                </div>
+                <div class="mb-4">
+                    <img src="/Project3/bells/kash_caricature.png" alt="Caricature" class="w-full rounded-lg shadow-md">
+                </div>
+
+
+
+
+                <!-- Add your bells and whistles content here -->
+            </section>
+        </main>
+    </div>
+</body>
+</html>
