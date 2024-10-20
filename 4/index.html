@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project 4: Image Mosaicing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seablue: {
+                            light: '#e3f2fd',
+                            DEFAULT: '#2196f3',
+                            dark: '#1565c0',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+    <div class="flex">
+        <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <ul class="space-y-3">
+                    <li><a href="#part1" class="text-seablue hover:text-seablue-dark transition-colors">Part 1: Shoot and Digitize Pictures</a></li>
+                    <li><a href="#part2" class="text-seablue hover:text-seablue-dark transition-colors">Part 2: Recover Homographies</a></li>
+                    <li><a href="#part3" class="text-seablue hover:text-seablue-dark transition-colors">Part 3: Warp the Images</a></li>
+                    <li><a href="#part4" class="text-seablue hover:text-seablue-dark transition-colors">Part 4: Blend Images into a Mosaic</a></li>
+                    <li><a href="#bells-whistles" class="text-seablue hover:text-seablue-dark transition-colors">Bells and Whistles</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-12 w-full">
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">CS180 Project 4: Image Mosaicing</h1>
+
+            <section id="part1" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 1: Shoot and Digitize Pictures</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    For this project, I took multiple photographs with projective transforms between them. I ensured that:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700">
+                    <li>The camera's center of projection (COP) was fixed while rotating to capture photos.</li>
+                    <li>Lenses with minimal distortion were used to ensure straight lines remained straight.</li>
+                    <li>Photos were taken close together in time to minimize subject movement and lighting changes.</li>
+                    <li>There was significant overlap (40-70%) between adjacent images.</li>
+                </ul>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Here are the original images I used for creating the mosaic:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/OG/Hall1_resized.png" alt="Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/OG/Hall2_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+                    <!-- Add your image tags here -->
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/OG/Nroom1_resized.png" alt="Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/OG/Nroom2_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+                    <!-- Add your image tags here -->
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/OG/House1_resized.png" alt="Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/OG/House2_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+                    <!-- Add your image tags here -->
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <!-- Add your image tags here -->
+                </div>
+            </section>
+
+            <section id="part2" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 2: Recover Homographies</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    To recover the homographies between image pairs, I implemented the following function:
+                </p>
+                <pre class="bg-gray-100 p-4 rounded-lg mb-4"><code>H = computeH(im1_pts, im2_pts)</code></pre>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    This function takes two n-by-2 matrices of corresponding points from two images and returns the 3x3 homography matrix. I used more than 4 correspondences and solved the resulting overdetermined system using least-squares to improve stability.
+                </p>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Here's a visualization of the point correspondences I used:
+                </p>
+                <!-- Placeholder for point correspondence visualization -->
+                <div class="mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <image src="/Project4/corr/House1_points.png" alt="Image 1" class="w-full rounded-lg">
+                        <image src="/Project4/corr/House2_points.png" alt="Image 1" class="w-full rounded-lg"></image>
+                        <!-- Add your image tags here -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="part3" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 3: Warp the Images</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    I implemented the image warping function:
+                </p>
+                <pre class="bg-gray-100 p-4 rounded-lg mb-4"><code>imwarped = warpImage(im, H)</code></pre>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    This function takes an input image and a homography matrix, and returns the warped image. I used inverse warping with interpolation to avoid aliasing. An alpha channel was used to mark undefined pixels.
+                </p>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    As a test, I performed image rectification on a photo containing a known rectangular object:
+                </p>
+                <!-- Placeholder for rectification example -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/rect/ArtGal.png" alt="Image 1" class="w-full rounded-lg">
+                        <image src="/Project4/rect/rectified_museum.png" alt="Image 1" class="w-full rounded-lg"></image>
+                </div>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                And for another one here are the points that we mapped to a rectangle:
+            </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <image src="/Project4/rect/im2rectmarked.jpg" alt="Image 1" class="w-full rounded-lg"></image>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/rect/im2rect.jpg" alt="Image 1" class="w-full rounded-lg"></image>
+                    <image src="/Project4/rect/rect2.png" alt="Image 1" class="w-full rounded-lg"></image>
+            </div>
+
+
+
+
+            </section>
+
+            <section id="part4" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 4: Blend Images into a Mosaic</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    To create the final mosaic, I warped all images to a common projection and blended them using weighted averaging. The process involved:
+                </p>
+                <ol class="list-decimal list-inside mb-4 text-gray-700">
+                    <li>Determining the size of the final mosaic</li>
+                    <li>Warping all images to this size</li>
+                    <li>Creating an alpha channel for each image</li>
+                    <li>Blending the images using weighted averaging</li>
+                </ol>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Here is the image that I obtained by used simple averaging to blend the images:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+                    <image src="/Project4/outsideHouse/overlay_house_outside.png" alt="Image 1" class="w-full rounded-lg"></image>
+             
+            </div>
+
+
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    And here is the image that I obtained by using a weighted alpha average to blend the images:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+                    <image src="/Project4/outsideHouse/panorama_outside_alpha_blended.png" alt="Image 1" class="w-full rounded-lg"></image>
+             
+            </div>
+
+
+            <p class="mb-4 text-gray-700 leading-relaxed">
+                Here are the other two images:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <image src="/Project4/Hall/Hall1_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+                <image src="/Project4/Hall/Hall2_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+                <image src="/Project4/Hall/overlay_house_hall.png" alt="Image 1" class="w-full rounded-lg"></image>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <image src="/Project4/Nroom/Nroom1_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+            <image src="/Project4/Nroom/Nroom2_resized.png" alt="Image 1" class="w-full rounded-lg"></image>
+            <image src="/Project4/Nroom/overlay_nandy_room.png" alt="Image 1" class="w-full rounded-lg"></image>
+    </div>
+
+
+
+                <!-- Placeholder for mosaic examples -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <!-- Add your image tags here -->
+                </div>
+            </section>
+
+            
+        </main>
+    </div>
+</body>
+</html>
