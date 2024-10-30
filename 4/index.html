@@ -185,8 +185,97 @@
                 </div>
             </section>
 
+            <section id="part-b" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part B: Automatic Image Stitching</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The second part focuses on automatically detecting and matching features between images to create mosaics without manual correspondence points.
+                </p>
+            
+                <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Corner Detection</h3>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    For detecting corners, I implemented the Harris corner detector with Adaptive Non-Maximal Suppression (ANMS) to:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700">
+                    <li>Apply Harris corner detector for initial corner points</li>
+                    <li>Use ANMS to select strong and well-distributed corners</li>
+                    <li>Filter to keep top 1000 corners for feature matching</li>
+                </ul>
+            
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/Images/HarrisIm1.png" alt="Harris Corners Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/Images/HarrisIm2.png" alt="Harris Corners Image 2" class="w-full rounded-lg">
+                </div>
+            
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/Images/ANMSIm1.png" alt="ANMS Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/Images/ANMSIm2.png" alt="ANMS Image 2" class="w-full rounded-lg">
+                </div>
+            
+                <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Feature Descriptors</h3>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    For each detected corner, feature descriptors were extracted by:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700">
+                    <li>Taking 40x40 pixel windows centered on each corner</li>
+                    <li>Downsampling to 8x8 descriptors</li>
+                    <li>Normalizing by subtracting mean and dividing by standard deviation</li>
+                </ul>
+            
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <image src="/Project4/Images/FeaturesIm1.png" alt="Features Image 1" class="w-full rounded-lg">
+                    <image src="/Project4/Images/FeaturesIm2.png" alt="Features Image 2" class="w-full rounded-lg">
+                </div>
+            
+                <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Feature Matching</h3>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Features were matched between images using Lowe's ratio test with a threshold of 0.8:
+                </p>
+            
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+                    <image src="/Project4/Images/MatchNumbers.png" alt="Feature Matching" class="w-full rounded-lg">
+                </div>
+            
+                <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Final Results</h3>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Comparison of manual vs automatic stitching results:
+                </p>
+            
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="bg-seablue-light">
+                            <tr>
+                                <th class="p-4">Manual Stitching</th>
+                                <th class="p-4">Automatic Stitching</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-4"><image src="/Project4/outsideHouse/panorama_outside_alpha_blended.png" alt="Manual Panorama 1" class="w-full rounded-lg"></td>
+                                <td class="p-4"><image src="/Project4/Images/HouseOutsidePanoAuto.png" alt="Auto Panorama 1" class="w-full rounded-lg"></td>
+                               
+                            </tr>
+
+                            <tr>
+                                <td class="p-4"><image src="/Project4/Nroom/overlay_nandy_room.png" alt="Manual Panorama 1" class="w-full rounded-lg"></td>
+                                <td class="p-4"><image src="/Project4/Images/NandyRoomPanoAuto.png" alt="Auto Panorama 1" class="w-full rounded-lg"></td>
+                            </tr>
+
+                            <tr>
+                                <td class="p-4"><image src="/Project4/Hall/overlay_house_hall.png" alt="Manual Panorama 1" class="w-full rounded-lg"></td>
+                                <td class="p-4"><image src="/Project4/Images/HouseHallPanoAuto.png" alt="Auto Panorama 1" class="w-full rounded-lg"></td>
+                            </tr>
+                            <!-- Add more rows for other panorama comparisons -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             
         </main>
+
+        
     </div>
+
+    
 </body>
 </html>
