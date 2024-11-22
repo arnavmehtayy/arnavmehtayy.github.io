@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS180 Project 5:Diffusion Models</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            seablue: {
+              light: '#e3f2fd',
+              DEFAULT: '#2196f3',
+              dark: '#1565c0',
+            },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+  <div class="flex">
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+        <ul class="space-y-3">
+            <li><a href="#part0" class="text-seablue hover:text-seablue-dark transition-colors">Part 0: Sampling from the Model</a></li>
+          <li><a href="#part1" class="text-seablue hover:text-seablue-dark transition-colors">Part 1: Sampling Loops</a></li>
+          <li><a href="#part2" class="text-seablue hover:text-seablue-dark transition-colors">Part 2: Training Diffusions Networks</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-12 w-full">
+      <!-- Part 0 -->
+    
+        <section id="part0" class="mb-16">
+            <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 0: Sampling from the Model</h2>
+            <p> The seed used for Part A was 222</p>
+            <p class="mb-4 text-gray-700 leading-relaxed">
+            In this part, you will sample images from the diffusion model. 
+            The code generates images by sampling from the model with varying numbers of inference steps. 
+            Examining three sets of images generated with 20, 40, and 100 inference steps reveals a clear increase in image quality. 
+            </p>
+
+            <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">20 Steps</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+             <image src="/Project5A/model_sample/20_steps/mountain.png" alt="Image 1" class="w-full rounded-lg">
+                    <image src="/Project5A/model_sample/20_steps/manHat.png" alt="Image 1" class="w-full rounded-lg">
+                        <image src="/Project5A/model_sample/20_steps/rocket.png" alt="Image 1" class="w-full rounded-lg"></image>
+            </div>
+
+            <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">40 Steps</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+             <image src="/Project5A/model_sample/40_steps/montain.png" alt="Image 1" class="w-full rounded-lg">
+                    <image src="/Project5A/model_sample/40_steps/manhat.png" alt="Image 1" class="w-full rounded-lg">
+                        <image src="/Project5A/model_sample/40_steps/rocket.png" alt="Image 1" class="w-full rounded-lg"></image>
+            </div>
+
+            <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">100 Steps</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <image src="/Project5A/model_sample/100_steps/Mountain.png" alt="Image 1" class="w-full rounded-lg">
+                       <image src="/Project5A/model_sample/100_steps/manHat.png" alt="Image 1" class="w-full rounded-lg">
+                           <image src="/Project5A/model_sample/100_steps/rocket.png" alt="Image 1" class="w-full rounded-lg"></image>
+               </div>
+        
+
+        </section>
+     
+
+      <!-- Part 1 -->
+      <section id="part1" class="mb-16">
+        <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Part 1: Sampling Loops</h2>
+        <p class="mb-4 text-gray-700 leading-relaxed">
+            
+        </p>
+
+        <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.1: Forward Process</h3>
+
+        <p>The forward process is implemented using the equation:</p>
+    <pre>
+x_t = √(ᾱ_t) x_0 + √(1 - ᾱ_t) ε, where ε ∼ N(0, 1)
+    </pre>
+    <p>This process adds Gaussian noise to an image while reducing the influence of the original image.</p>
+
+
+    <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="border border-gray-300 p-2 text-left">Timestep</th>
+                <th class="border border-gray-300 p-2 text-left">Description</th>
+                <th class="border border-gray-300 p-2 text-left">Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="border border-gray-300 p-2"><strong>t = 0</strong></td>
+                <td class="border border-gray-300 p-2">Original image.</td>
+                <td class="border border-gray-300 p-2">
+                    <img src="/Project5A/1.7.2/campanili/OG.png" alt="Original Image" class="w-full rounded-lg">
+                </td>
+            </tr>
+            <tr>
+                <td class="border border-gray-300 p-2"><strong>t = 250</strong></td>
+                <td class="border border-gray-300 p-2">The tower remains visible, but random noise begins to affect clarity, especially in the sky and edges.</td>
+                <td class="border border-gray-300 p-2">
+                    <img src="/Project5A/1.1/250_noise.png" alt="Noisy Image at t=250" class="w-full rounded-lg">
+                </td>
+            </tr>
+            <tr>
+                <td class="border border-gray-300 p-2"><strong>t = 500</strong></td>
+                <td class="border border-gray-300 p-2">Noise obscures much of the tower's shape, with colorful static making details hard to discern.</td>
+                <td class="border border-gray-300 p-2">
+                    <img src="/Project5A/1.1/500_noise.png" alt="Noisy Image at t=500" class="w-full rounded-lg">
+                </td>
+            </tr>
+            <tr>
+                <td class="border border-gray-300 p-2"><strong>t = 750</strong></td>
+                <td class="border border-gray-300 p-2">The image is almost entirely noise, with only a faint outline of the tower visible.</td>
+                <td class="border border-gray-300 p-2">
+                    <img src="/Project5A/1.1/750_noise.png" alt="Noisy Image at t=750" class="w-full rounded-lg">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.2: Gaussian Denoising</h3>
+     <p> Applied Gaussian blur filtering to denoise image I did this for the noise values [250, 500, 750]. 
+        This clearly shows that this method is not effective at denoising </p>
+
+     <div class="grid grid-cols-2 md:grid-cols-1 gap-4 mb-4">
+        <image src="/Project5A/1.2/download.png" alt="Image 1" class="w-full rounded-lg">
+        <!-- Add your image tags here -->
+    </div>
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.3: One-Step Denoising</h3>
+     <p> Utilized our pretrained UNet model to estimate and remove noise in just one step. We see that this does much better than the Gaussian denoising </p>
+
+     <div class="grid grid-cols-2 md:grid-cols-1 gap-4 mb-4">
+        <image src="/Project5A/1.3/download.png" alt="Image 1" class="w-full rounded-lg">
+        <!-- Add your image tags here -->
+    </div>
+
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.4: Iterative Denoising </h3>
+     <p> The above one-step denoising does well but there is still room for improvement.
+        To better this method: we will use iterative denoising to recover clean images from noisy inputs using strided timesteps.
+        Using a stride of 30 timesteps from 990 down to 0, we can observe an improvement in image quality. The results clearly show how multiple smaller denoising steps produce significantly better results than attempting to denoise in a single large step.
+        We will compare iterative denoising with one-step denoising and classical denoising
+     </p>
+
+     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.4/noise40.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Noise 40</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/noise_240.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Noise 240</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/noise_390.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Noise 390</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/noise_540.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Noise 540</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/noise_690.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Noise 690</p>
+        </div>
+        <!-- Add more images here -->
+    </div>
+
+    
+    <p>Now all three together:  </p>
+
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.4/gaussianblur.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Gaussian</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/onestep.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">One-Step</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.4/Iterative.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Iterative</p>
+        </div>
+
+        <!-- Add more images here -->
+    </div>
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.5: Diffusion Model Sampling</h3>
+
+    <p>
+
+        The model, prompted with "a high-quality photo," transforms Gaussian noise into an image by iteratively removing noise based on patterns from its training data. Each step brings the output closer to the natural image manifold.
+    </p>
+    
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.5/1.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 1</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.5/2.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 2</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.5/3.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 3</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.5/4.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 4</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.5/5.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 5</p>
+        </div>
+
+        <!-- Add more images here -->
+    </div>
+
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.6: Classifier-Free Guidance</h3>
+    <p>
+        CFG improves image generation by blending two noise estimates:
+        <ul>
+          <li><strong>Conditional:</strong> Based on the prompt:  "a high quality photo".</li>
+          <li><strong>Unconditional:</strong> Based on an empty prompt "".</li>
+        </ul>
+      </p>
+      <p>
+        The estimates are combined using the formula:
+      </p>
+      <div class="formula">
+        <code>noise_est = noise_est_uncond + cfg_scale * (noise_est_cond - noise_est_uncond)</code>
+      </div>
+      <p>
+        With <code>cfg_scale > 1</code>, we get higher quality images aligned with the prompt.
+      </p>
+      <p>
+        The <code>iterative_denoise_cfg</code> function achieves this by:
+        <ul>
+          <li>Running the UNet model twice per step: once with prompt embeddings, once with null embeddings.</li>
+          <li>Combining predictions using the CFG formula before applying each denoising step.</li>
+        </ul>
+      </p>
+      <p>For the images below, we used <code>cfg_scale = 7</code>.</p>
+      
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.6/1.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 1</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.6/2.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 2</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.6/3.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 3</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.6/4.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 4</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.6/5.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Image 5</p>
+        </div>
+
+        <!-- Add more images here -->
+    </div>
+
+
+    <h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.7: Image Translation and Conditioning</h3>
+
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.7.1: Editing hand drawn and web images</h4>
+
+    <p> 
+        we take a real image, add noise to it, and then denoise.
+        This effectively allows us to make edits to existing images.
+        The more noise we add, the larger the edit will be.
+        This works because in order to denoise an image, the diffusion model must to some extent "hallucinate" new things -- the model has to be "creative."
+    </p>
+
+    <p>
+        Here, we're going to take the original test image, noise it a little, and force it back onto the image manifold without any conditioning.
+         Effectively, we're going to get an image that is similar to the test image 
+    </p>
+
+    <p>
+        We test a range of starting indices [1, 3, 5, 7, 10, 20] that correspond to different levels editing.
+    </p>
+
+    <div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/1.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 1 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/3.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 3 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/5.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 5 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/7.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 7 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/10.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 10 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/capy_web/20.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 20 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/capybara/OG.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Original</p>
+        </div>
+        <!-- Add more images here -->
+    </div>
+
+    <p>
+        Now for two hand drawn images
+    </p>
+
+
+    <div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/1.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 1 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/3.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 3 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/5.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 5 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/7.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 7 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/10.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 10 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/20.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 20 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/hand_drawn_girl/OG.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Original</p>
+        </div>
+        <!-- Add more images here -->
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/1.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 1 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/3.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 3 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/5.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 5 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/7.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 7 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/10.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 10 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/20.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">start index 20 noise</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.1/mountain_river_sun/OG.png" alt="Noise 690" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Original</p>
+        </div>
+        <!-- Add more images here -->
+    </div>
+
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.7.1: Inpainting</h4>
+
+    <p>
+        This method lets you edit an image using a binary mask. Given:
+    </p>
+    <ul>
+        <li><strong>Original Image:</strong> <code>x_orig</code></li>
+        <li><strong>Binary Mask:</strong> <code>m</code></li>
+    </ul>
+    <p>
+        The result keeps the original content where <code>m = 0</code> and generates new content where <code>m = 1</code>.
+    </p>
+    <h2>How It Works</h2>
+    <ol>
+        <li>Run the diffusion denoising loop.</li>
+        <li>At each step, update the image to match the original where <code>m = 0</code>.</li>
+    </ol>
+    <p>
+        The update rule is:
+    </p>
+    <p>
+        <code>x_t ← m * x_t + (1 - m) * forward(x_orig, t)</code>
+    </p>
+    <p>
+        This ensures that the unmasked areas retain the original image while the masked areas are updated with new content.
+    </p>
+    <h2>Example</h2>
+    <p>
+        Use this method to inpaint specific parts of an image, such as restoring the top of the Campanile in a photo.
+    </p>
+
+    <p> The test image</p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/campanili/OG.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Campanile</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/campanili/mask.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Mask</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/campanili/ToReplace.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">To replace</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/campanili/final.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">InPainted</p>
+        </div>
+    
+        <!-- Add more images here -->
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/capybara/OG.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Capybara</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/capybara/mask.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Mask</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/capybara/ToReplace.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">To replace</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/capybara/final.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">InPainted</p>
+        </div>
+    
+        <!-- Add more images here -->
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/waterbottle/OG.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Water Bottle</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/waterbottle/mask.png" alt="Noise 240" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">Mask</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/waterbottle/toReplace.png" alt="Noise 390" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">To replace</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5A/1.7.2/waterbottle/final.png" alt="Noise 540" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">InPainted</p>
+        </div>
+    
+        <!-- Add more images here -->
+    </div>
+
+
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.7.3: Text-Conditioned Image-to-image Translation</h4>
+
+    <p>
+        In this section, we extend the previous technique by guiding the image projection using a text prompt. This allowing more specific edits beyond just projecting to the natural image manifold.
+    </p>
+    <h2>How It Works</h2>
+    <p>
+        Instead of using the default prompt <code>"a high quality photo"</code>, we have specified custom text prompt to guide the projection.
+    </p>
+<p>
+    Edited versions of the test image, using the given prompt at noise levels: <code>[1, 3, 5, 7, 10, 20]</code>.
+</p>
+
+<p>
+    capybara image to dog prompt: "a photo of a dog"
+</p>
+
+<div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.7.2/capybara/OG.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">capybara</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/capy_to_dog/390_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">390 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/capy_to_dog/690_noise.png" alt="Noise 240" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">690 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/capy_to_dog/780_noise.png" alt="Noise 390" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">780 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/capy_to_dog/840_noise.png" alt="Noise 540" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">840 noise</p>
+    </div>
+    <div>
+        <img src="/Project5A/1.7.3/capy_to_dog/900_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">900 noise</p>
+    </div>
+
+    <div>
+        <img src="/Project5A/1.7.3/capy_to_dog/960_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">960 noise</p>
+    </div>
+
+    <!-- Add more images here -->
+</div>
+
+<p>
+    waterbottle image to barista prompt:'a photo of a hipster barista'
+</p>
+
+<div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.7.2/waterbottle/OG.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">waterbottle</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/bottle_to_barista/390_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">390 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/bottle_to_barista/690_noise.png" alt="Noise 240" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">690 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/bottle_to_barista/780_noise.png" alt="Noise 390" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">780 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/bottle_to_barista/840_noise.png" alt="Noise 540" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">840 noise</p>
+    </div>
+    <div>
+        <img src="/Project5A/1.7.3/bottle_to_barista/900_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">900 noise</p>
+    </div>
+
+    <div>
+        <img src="/Project5A/1.7.3/bottle_to_barista/960_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">960 noise</p>
+    </div>
+
+    <!-- Add more images here -->
+</div>
+
+<p>
+    Campanile image to rocket prompt: "a rocket ship"
+</p>
+
+<div class="grid grid-cols-2 md:grid-cols-7 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.7.2/campanili/OG.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">Campanile</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/camp_to_rocket/390_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">390 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/camp_to_rocket/690_noise.png" alt="Noise 240" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">690 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/camp_to_rocket/780_noise.png" alt="Noise 390" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">780 noise</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5A/1.7.3/camp_to_rocket/840_noise.png" alt="Noise 540" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">840 noise</p>
+    </div>
+    <div>
+        <img src="/Project5A/1.7.3/camp_to_rocket/900_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">900 noise</p>
+    </div>
+
+    <div>
+        <img src="/Project5A/1.7.3/camp_to_rocket/960_noise.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">960 noise</p>
+    </div>
+
+    <!-- Add more images here -->
+</div>
+
+<h3 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.8 Visual Anagrams </h3>
+
+<p>
+    We will now generate images that look like one thing but, when flipped upside down, reveal something else.
+    In this example, we will generate an image that looks like <strong>"an oil painting of an old man"</strong> but, when flipped upside down, reveals <strong>"an oil painting of people around a campfire."</strong>
+</p>
+
+<h2>How It Works</h2>
+<p>
+    The process involves denoising an image in two ways, combining the results to create the illusion:
+</p>
+<ol>
+    <li>
+        Denoise the image <code>x_t</code> at step <code>t</code> using the prompt <strong>"an oil painting of an old man"</strong>, obtaining the noise estimate <code>ε₁</code>.
+    </li>
+    <li>
+        Flip the image upside down and denoise it with the prompt <strong>"an oil painting of people around a campfire"</strong>, yielding the noise estimate <code>ε₂</code>.
+    </li>
+    <li>
+        Flip <code>ε₂</code> back to align it with <code>ε₁</code>.
+    </li>
+    <li>
+        Average the two noise estimates: <code>ε = (ε₁ + ε₂) / 2</code>.
+    </li>
+    <li>
+        Perform a reverse diffusion step using the averaged noise estimate <code>ε</code>.
+    </li>
+</ol>
+<p>The algorithm can be summarized as:</p>
+<pre>
+    ε₁ = UNet(x_t, t, p₁)
+    ε₂ = flip(UNet(flip(x_t), t, p₂))
+    ε  = (ε₁ + ε₂) / 2
+</pre>
+
+<p>Here are the results:</p>
+
+<p> 
+    prompt1 = "an oil painting of an old man"
+prompt2 = "an oil painting of people around a campfire"
+</p>
+
+<div class="grid grid-cols-8 md:grid-cols-8 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.8/oldman_camp/manUP.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">Old man</p>
+    </div>
+        
+
+    <div class="text-center">
+        <img src="/Project5A/1.8/oldman_camp/PeopleCamp.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">People around a camp fire</p>
+    </div>   
+        
+
+    <!-- Add more images here -->
+</div>
+
+<p> 
+    prompt1 = 'a wild baboon'
+prompt2 = 'a volcano eruption'
+</p>
+
+<div class="grid grid-cols-8 md:grid-cols-8 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.8/baboon_volcano/baboon.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">Baboon</p>
+    </div>
+        
+
+    <div class="text-center">
+        <img src="/Project5A/1.8/baboon_volcano/volcano.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">volcano erupting</p>
+    </div>   
+        
+
+    <!-- Add more images here -->
+</div>
+
+<p> 
+    prompt1 = 'a ski lift with a mountain background'
+prompt2 = 'a row boat in venice'
+</p>
+
+
+<div class="grid grid-cols-8 md:grid-cols-8 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.8/skislope_boat/boat.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">boat</p>
+    </div>
+        
+
+    <div class="text-center">
+        <img src="/Project5A/1.8/skislope_boat/ski_lift.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">ski-lift</p>
+    </div>   
+        
+
+    <!-- Add more images here -->
+</div>
+
+<h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 1.9: Hybrid Images</h4>
+
+<p>
+    To create hybrid images using a diffusion model, we blend low frequencies from one noise estimate with high frequencies from another. Here’s the step-by-step process:
+</p>
+<ol>
+    <li>
+        Estimate noise <code>ε₁</code> for the first prompt using the UNet model.
+    </li>
+    <li>
+        Estimate noise <code>ε₂</code> for the second prompt using the same model.
+    </li>
+    <li>
+        Combine the noise estimates:
+        <ul>
+            <li>Apply a low-pass filter (e.g., Gaussian blur) to <code>ε₁</code>.</li>
+            <li>Apply a high-pass filter to <code>ε₂</code>.</li>
+            <li>Add the results: <code>ε = f_lowpass(ε₁) + f_highpass(ε₂)</code>.</li>
+        </ul>
+    </li>
+</ol>
+<p>The algorithm can be summarized as:</p>
+<pre>
+    ε₁ = UNet(x_t, t, p₁)
+    ε₂ = UNet(x_t, t, p₂)
+    ε  = f_lowpass(ε₁) + f_highpass(ε₂)
+</pre>
+
+
+
+
+<div class="grid grid-cols-3 md:grid-cols-3 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5A/1.9/skull_waterfall.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">
+            prompt1 = "a lithograph of a skull" <br />
+            prompt2 = "a lithograph of waterfalls"</p>
+    </div>
+        
+
+    <div class="text-center">
+        <img src="/Project5A/1.9/rocket_pencil.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">
+            prompt1 =  "a rocket ship" <br />
+        prompt2 = 'a pencil'
+        </p>
+    </div>   
+
+    <div class="text-center">
+        <img src="/Project5A/1.9/volcano_man_cap.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">
+            prompt1 = 'a man wearing a hat' <br />
+prompt2 = 'a volcano eruption'
+        </p>
+    </div>   
+        
+
+    <!-- Add more images here -->
+</div>
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+<section id="part0" class="mb-16">
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 2: Training Diffusion Networks</h4>
+
+    In this part of the project we endeavor to structure and train our own diffusion models using pytorch on the MNIST
+    digits dataset. We will structure this into the following steps:
+    <ul>
+        <li>Setting up the UNet Structure.</li>
+        <li>Using the UNet to Train a Denoiser</li>
+        <li>Adding Time Conditioning to UNet</li>
+        <li>Training the UNet</li>
+        <li>dding Class-Conditioning to UNet</li>
+    </ul>
+
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 2.2: Noise Levels on MNIST digits</h4>
+
+    <p>
+        We will start by adding noise to the MNIST digits dataset. We will add noise at different levels to the images
+        and visualize this.
+    </p>
+
+    <div class="text-center">
+        <img src="/Project5B/digit_noise_2.png" alt="Noise" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">Noised MNIST digits</p>
+    </div>   
+
+
+<h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 2.2.1: Training the model to perform denoising</h4>
+<p> 
+    We will now train the model to perform denoising on the MNIST digits dataset. We will train the model to remove
+    noise from the images. Here is the loss curve for the model:
+<p>Train a denoiser to denoise noisy image z with sigma=0.5 applied to a clean image x.</p>
+
+<h2>Dataset and dataloader:</h2>
+<ul>
+   <li>Use the MNIST dataset via <code>torchvision.datasets.MNIST</code> with flags to access training and test sets</li>
+
+   <li>batch size: 256</li>
+   <li>Train for 5 epochs</li>
+</ul>
+
+<ul>
+   <li> hidden dimension <code>D = 128</code></li>
+</ul>
+
+<ul>
+   <li>Adam optimizer</li>
+   <li>Learning rate: 1e-4</li>
+</ul>
+</p>
+
+<p>Here is the loss curve for the model:</p>
+
+<div class="text-center">
+    <img src="/Project5B/train_loss_denoise.png" alt="Noise" class="w-full rounded-lg">
+    <p class="mt-2 text-gray-700">Loss curve</p>
+</div>  
+
+<p> Here are the results on some of the MNIST images in the test set</p>:
+
+<div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+    <div class="text-center">
+        <img src="/Project5B/denoise_epoch1.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">After Epoch 1</p>
+    </div>
+    <div class="text-center">
+        <img src="/Project5B/denoise_epoch_5.png" alt="Noise 40" class="w-full rounded-lg">
+        <p class="mt-2 text-gray-700">After Epoch 5</p>
+    </div>
+
+    <!-- Add more images here -->
+</div>
+
+<p> Note that our denoiser is trained on sigma = 0.5, Let's see how the denoiser performs on different 
+    sigmas that it wasn't trained for.</p>
+
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5B/denoiser_on_different_sigmas.png" alt="Noise 40" class="w-full rounded-lg">
+        </div>
+    
+        <!-- Add more images here -->
+    </div>
+
+
+    <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 2.2: Adding Time Conditioning to UNet</h4>
+<p> 
+    Now we move on training the diffusion models. We begin by adding time conditioning the the UNet structure and training
+    the model.
+</p>
+<p>
+    Here is the training loss curve for the UNet with time conditioning:
+    </p>
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5B/training_loss_Time.png" alt="Noise 40" class="w-full rounded-lg">
+        </div>
+    
+        <!-- Add more images here -->
+    </div>
+
+    <p> Here are the results on some of the MNIST images in the test set </p>:
+
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+        <div class="text-center">
+            <img src="/Project5B/TimeEpoch5.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">After Epoch 5</p>
+        </div>
+        <div class="text-center">
+            <img src="/Project5B/TimeEpoch20.png" alt="Noise 40" class="w-full rounded-lg">
+            <p class="mt-2 text-gray-700">After Epoch 20</p>
+        </div>
+    </div>
+    
+        <!-- Add more images here -->
+        <h4 class="text-2xl font-semibold mb-4 text-seablue-dark">Part 2.4: Adding Class Conditioning to UNet</h4>
+
+
+        <p> 
+            Now we move on training the diffusion models. We begin by adding class conditioning the the UNet structure and training
+            the model. Here is the training loss curve for the UNet with class conditioning:
+        </p>
+
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+                <img src="/Project5B/train_loss_class.png" alt="Noise 40" class="w-full rounded-lg">
+            </div>
+        
+        </div>
+
+        <p> Here are the results on some of the MNIST images in the test set </p>:
+
+        <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+                <img src="/Project5B/class_cond_epoch5.png" alt="Noise 40" class="w-full rounded-lg">
+                <p class="mt-2 text-gray-700">After Epoch 5</p>
+            </div>
+            <div class="text-center">
+                <img src="/Project5B/class_cond_epoch20.png" alt="Noise 40" class="w-full rounded-lg">
+                <p class="mt-2 text-gray-700">After Epoch 20</p>
+            </div>
+        </div>
+
+
+
+      <section>
+
+      </section>
+
+
+    </main>
+  </div>
+</body>
+</html>
