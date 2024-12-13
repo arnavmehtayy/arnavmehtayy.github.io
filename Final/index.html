@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project1:  Prokudin-Gorskii Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seablue: {
+                            light: '#e3f2fd',
+                            DEFAULT: '#2196f3',
+                            dark: '#1565c0',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-seablue-light min-h-screen">
+    <div class="flex">
+        <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <ul class="space-y-3">
+                    <li><a href="#introduction" class="text-seablue hover:text-seablue-dark transition-colors">Introduction</a></li>
+                    <li><a href="#single-scale" class="text-seablue hover:text-seablue-dark transition-colors">RST</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#single-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#single-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#multi-scale" class="text-seablue hover:text-seablue-dark transition-colors">Overlapping Patches</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#multi-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#multi-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+
+                    <li><a href="#tri-scale" class="text-seablue hover:text-seablue-dark transition-colors">Seam Finding</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#tri-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#tri-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+
+                    <li><a href="#quad-scale" class="text-seablue hover:text-seablue-dark transition-colors">Texture Transfer</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#quad-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#quad-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#acknowledgements" class="text-seablue hover:text-seablue-dark transition-colors">Acknowledgements</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-64 p-12 w-full">
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">Final Project 1: Image Quilting</h1>
+
+            <section id="introduction" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Introduction</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The goal of this assignment is to implement the image quilting algorithm for texture synthesis and transfer, described in this SIGGRAPH 2001 paper by Efros and Freeman.
+                    Texture synthesis is the creation of a larger texture image from a small sample. Texture transfer is giving an object the appearance of having the same texture as a sample while preserving its basic shape.
+                </p>
+            </section>
+
+            <section id="single-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Randomly Sampled Textures</h2>
+                <h3 id="single-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    This is the most basic method that creates a larger output image by randomly sampling square patches from an input sample image. It arranges these patches starting from the upper-left corner and tiles them across the output image.
+                </p>
+
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    In the below image the parameters used were: patch_size = 31, output_size = (300,300)
+                </p>
+                <h3 id="single-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <img src="/TextureQuilt/Part1/Original_text_small.png" alt="Single Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part1/RandomSampledTexture.png" alt="Single Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+
+                </div>
+            </section>
+
+            <section id="multi-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Overlapping patches</h2>
+                <h3 id="multi-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    This method constructs a larger output image by sampling square patches from an input image, ensuring that each patch overlaps with existing ones to create a more seamless texture. The process begins by placing a random patch in the upper-left corner. Subsequent patches are chosen based on overlapping regions, using the sum of squared differences (SSD) to evaluate the cost of each potential patch.
+                    <p>SSD Cost Equation:</p>
+<pre>
+ssd_cost = ((M * T)**2).sum() - 2 * cv2.filter2D(I, ddepth=-1, kernel=M * T) + cv2.filter2D(I**2, ddepth=-1, kernel=M)
+</pre>
+                </p>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    In the below image the parameters used were: <br /> Image1 patch_size = 53, output_size = (300,300), overlap_size = 10, tol = 3 <br />
+                    Image2: patch_size = 51, output_size = (300,300), overlap_size = 5, tol = 3
+                </p>
+                <h3 id="multi-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <img src="/TextureQuilt/Part2/sample.png" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part2/overlappingPatches.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part2/sample2.png" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part2/overlappingPatches2.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+
+            <section id="tri-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Seam Finding</h2>
+                <h3 id="tri-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    Now we implement the Seam Finding method that aims to remove edge artifacts by finding the best seam (path) to blend overlapping regions between patches. It calculates the cost of seams based on the squared differences between the overlapping areas of the output image and the new patch. Horizontal seams are found using the cut function, while vertical seams are handled by transposing the patch.
+                </p>
+
+                <p class="mb-6 text-gray-700 leading-relaxed">
+
+                    For a single patch, here are the the two overlapping portions, pixelwise SSD cost, vertical seam and combination mask. 
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
+                    <img src="/TextureQuilt/seam_ssd_andmore.png" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+
+                </div>
+
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    In the below image the parameters used were: <br /> Image1 patch_size = 19, output_size = (300,300), overlap_size = 5, tol = 8 <br />
+                    Image2: patch_size = 101, output_size = (700,700), overlap_size = 30, tol = 3 <br />
+                    Image3: patch_size = 71, output_size = (600,600), overlap_size = 20, tol = 5
+                </p>
+                <h3 id="tri-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <img src="/TextureQuilt/Part2/sample.png" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part3/cutting_text_small.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part3/Acrylic.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part3/Acrylic_out.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part3/grain_texture.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part3/seads_out.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+
+                </div>
+            </section>
+
+
+            
+            <section id="quad-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Texture Transfer</h2>
+                <h3 id="quad-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    Now finally we implement the texture_transfer function generates a texture guided by a target image. It builds on quilt_cut but adds an extra cost term to account for the difference between the sampled patch and the target image at the corresponding location. This ensures that the texture aligns with the target's structure while maintaining the texture's appearance.
+                </p>
+            
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                Texture transfer extends Quilt Cut by introducing an additional constraint, called <code>SSD_transfer</code>, which calculates the sum of squared differences (SSD) between the corresponding patch in the target image and the entire sample image. While Quilt Cut only considers <code>SSD_overlap</code>, which measures the SSD between the overlapping region of the output image and the sample image, texture transfer combines both constraints.</p>
+<p>The combined SSD matrix is computed as:</p>
+<pre>
+α * SSD_overlap + (1 - α) * SSD_transfer
+</pre>
+<p>Here, <code>α</code> controls the balance between texture consistency and alignment with the target image. This matrix is then used to select the best matching patch.
+
+                </p>
+
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    The parameters were <br />
+                    Image1 patch_size = 13, overlap_size = 6, tol = 2, alpha=0.65 <br />
+                    Image2: patch_size = 17, overlap_size = 7, tol = 3, alpha=0.7<br />
+                </p>
+                <h3 id="quad-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <img src="/TextureQuilt/Part4/buck_image.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part4/sketch_2.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part4/buck_sketch_2.png" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part4/Feynman_2.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part4/text_small.jpg" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                    <img src="/TextureQuilt/Part4/feynman_numbers.png" alt="Multi Scale Alignment Result 2" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="acknowledgements" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Acknowledgements</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The structure of this page was inspired by a website, and parts of the code for creating the website structure were generated using ChatGPT
+                </p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
