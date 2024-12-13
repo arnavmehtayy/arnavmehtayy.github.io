@@ -25,7 +25,7 @@
     <div class="flex">
         <nav class="w-64 bg-white h-screen fixed overflow-y-auto shadow-lg">
             <div class="p-6">
-                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Contents</h2>
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Image Quilting</h2>
                 <ul class="space-y-3">
                     <li><a href="#introduction" class="text-seablue hover:text-seablue-dark transition-colors">Introduction</a></li>
                     <li><a href="#single-scale" class="text-seablue hover:text-seablue-dark transition-colors">RST</a>
@@ -55,6 +55,32 @@
                         </ul>
                     </li>
                     <li><a href="#acknowledgements" class="text-seablue hover:text-seablue-dark transition-colors">Acknowledgements</a></li>
+                </ul>
+            </div>
+
+
+
+
+
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-6 text-seablue-dark">Augmented Reality</h2>
+                <ul class="space-y-3">
+                    <li><a href="#ARintroduction" class="text-seablue hover:text-seablue-dark transition-colors">Introduction</a></li>
+                    <li><a href="#ARsingle-scale" class="text-seablue hover:text-seablue-dark transition-colors">Points Tracking</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#AR-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#AR-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#AR-scale" class="text-seablue hover:text-seablue-dark transition-colors">Cube Augmentation</a>
+                        <ul class="ml-4 mt-2 space-y-2">
+                            <li><a href="#AR-scale-approach" class="text-seablue hover:text-seablue-dark transition-colors">Approach</a></li>
+                            <li><a href="#AR-scale-results" class="text-seablue hover:text-seablue-dark transition-colors">Results</a></li>
+                        </ul>
+                    </li>
+
+                    
+                    <li><a href="#ARacknowledgements" class="text-seablue hover:text-seablue-dark transition-colors">Acknowledgements</a></li>
                 </ul>
             </div>
         </nav>
@@ -188,6 +214,66 @@ ssd_cost = ((M * T)**2).sum() - 2 * cv2.filter2D(I, ddepth=-1, kernel=M * T) + c
                     The structure of this page was inspired by a website, and parts of the code for creating the website structure were generated using ChatGPT
                 </p>
             </section>
+
+
+
+            <h1 class="text-5xl font-bold mb-6 text-seablue-dark">Final Project 2: Augmented Reality</h1>
+
+            <section id="ARintroduction" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Introduction</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The goal of this assignment is to implement the augmented reality algorithm for tracking points and augmenting a cube on a planar surface. The cube augmentation is achieved by projecting a 3D cube onto the planar surface using the camera's projection matrix.
+                </p>
+                
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    Here is the initial video 
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
+                    <img src="/WebsiteAR/Convert to GIF Short.gif" alt="Single Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                </div>
+
+                
+                
+            </section>
+
+            <section id="AR-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Points Tracking</h2>
+                <h3 id="AR-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    We begin by manually detecting the points, then my algorithm tracks these points across frames using the Lucas-Kanade optical flow method. The optical flow algorithm estimates the motion of each point by comparing the intensity values of the point in the current frame with a small window around it in the next frame.
+                </p>
+
+                <h3 id="AR-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
+                    <img src="/WebsiteAR/box_with_tracking.gif" alt="Single Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+                </div>
+            </section>
+
+            <section id="multi-scale" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark"> Cube Augmentation</h2>
+                <h3 id="multi-scale-approach" class="text-2xl font-semibold mb-4 text-seablue">Approach</h3>
+                <p class="mb-6 text-gray-700 leading-relaxed">
+                    The cube augmentation is achieved by projecting a 3D cube onto the planar surface using the camera's projection matrix. The projection matrix is calculating using the point coorespondance between 3D and 2D coordinates.
+                </p>
+
+                <h3 id="multi-scale-results" class="text-2xl font-semibold mb-4 text-seablue">Results</h3>
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-8 mb-8">
+                    <img src="/WebsiteAR/FinalOUt.gif" alt="Multi Scale Alignment Result 1" class="w-full rounded-lg shadow-md">
+
+                </div>
+            </section>
+
+            <section id="ARacknowledgements" class="mb-16">
+                <h2 class="text-3xl font-semibold mb-6 text-seablue-dark">Acknowledgements</h2>
+                <p class="mb-4 text-gray-700 leading-relaxed">
+                    The structure of this page was inspired by a website, and parts of the code for creating the website structure were generated using ChatGPT
+                </p>
+            </section>
+
+
+
+            
         </main>
     </div>
 </body>
